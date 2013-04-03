@@ -1,8 +1,8 @@
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import create_engine, types #need types for datetime
-from sqlalchemy import Column, Integer, String
-import datetime #have to import datetime for timestamp column in ratings
+from sqlalchemy import create_engine, types 
+from sqlalchemy import Column, Integer, String, Date
 from sqlalchemy.orm import sessionmaker #like sqlite3 cursor - describes how to interact with database, needs to be instantiated
+
 
 ENGINE = None #sets a variable that will be a method to connect to ratings.db
 Session = None # set a variable that will be used by sessionmaker to help interact with ratings.db
@@ -29,8 +29,11 @@ class Movies(Base):
 
 	id = Column(Integer, primary_key=True)
 	name = Column(String(255))
-	release_at = Column(types.DateTime()) # imported from sqlalchemy (notes above)
-	imdb_url = Column(String(64))
+	release_at = Column(Date, nullable=True) # importing release date as a string & converting to datetime
+	imdb = Column(String(64))
+
+	def __repr__(self):
+		return u"<Movie: %d %s>"%(self.id, unicode(self.name))
 
 
 class Ratings(Base):
