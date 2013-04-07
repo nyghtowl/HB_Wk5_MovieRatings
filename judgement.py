@@ -4,19 +4,22 @@ judgement.py -- A flask-based ratings list
 
 #Added session, url_for, escape for username login and g for global variables
 # adding request is accessing the request object and same for redirect
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, flash
 # connect to model
 import model
 
 #initializes program to be a Flask application
 app = Flask(__name__)
-# in order to use session, a secret key is needed
+# in order to use session, a secret key is needed to keep client side session secure
 app.secret_key = "key"
+# initialize application with config and from_object will import the object if its a string
+app.config.from_object(__name__)
 
 @app.route("/index")
 def index():
 	# pull the user_id from the session
 	user_id = session.get("user_id", None)
+	# generate random list of users template
 	return redirect(url_for("list_users", id = user_id))
 
 # generate the create_user page to capture user information (email, password, age, zipcode)
@@ -54,17 +57,25 @@ def login():
 def authenticate():
 	user_email = request.form['email']
 	user_password = request.form['password']
+	
 	#check model-db for user information and create an object of that information
 	user_info = model.session.query(model.User).filter_by(email = user_email, password = user_password).first()
-	# need to validate that the info exists otherwise send back to login
-
-	#capture the email from the form and apply to session
-	session['email'] = request.form['email']
-	#capture id out of the user_info object and assign to session
-	session['user_id'] = user_info.id
+	
+	# validate that the info exists otherwise send back to login
+	if user_info:
+		#capture the email from the form and apply to session - alternative request.form['email']
+		session['email'] = user_info.email
+		#capture id out of the user_info object and assign to session
+		session['user_id'] = user_info.id
+		flash('Logged in as:' + session['email'])
+		return redirect(url_for('index'))
+	else:
+		#post message on screen if username or password are incorret
+		flash('Invalid username or password', 'error')
+		return redirect(url_for('login'))
 
 	# after getting the session variable back, you have to point it to a page
-	return redirect("/index")
+	# return redirect(url_for("index"))
 
 # logout a user
 @app.route("/logout")
@@ -73,6 +84,15 @@ def logout():
 	session.pop('email',None)
 	session.pop('user_id',None)
 	return redirect(url_for('login'))
+
+# We should be able to view a list of all users
+# Note you can pass id through view and funciton or through calling the session
+@app.route("/list_users/<id>")
+def list_users(id=None):
+	user_email = session.get("email", None)
+	user_list = model.session.query(model.User).limit(5).all()
+	#user_list = model.session.query(model.User).all()
+	return render_template("user_list.html", user_list = user_list, user_email = user_email)
 
 # We should be able to click on a user and view the list of movies they've rated, as well as ratings
 # generate a ratings page based on users id
@@ -84,19 +104,19 @@ def view_ratings(id=None):
 	# return a page of the user ratings by passing the queried information in user_ratings object
 	return render_template("view_ratings.html", ratings = user_ratings)
 
-
-# We should be able to view a list of all users
-# Note you can pass id through view and funciton or through calling the session
-@app.route("/list_users/<id>")
-def list_users(id=None):
-	user_email = session.get("email", None)
-	user_list = model.session.query(model.User).limit(5).all()
-	#user_list = model.session.query(model.User).all()
-	return render_template("user_list.html", user_list = user_list, user_email = user_email)
+# View all ratings for a specific movie
+@app.route("/movie_rating_list/<id>")
+# id = None in case there is no id
+def movie_rating_list(id=None):
+	# sets sql query to pull ratings based on user id
+	movie_ratings = model.session.query(model.Rating).filter_by(movie_id=id).all()
+	# return a page of the user ratings by passing the queried information in user_ratings object
+	return render_template("movie_rating_list.html", ratings = movie_ratings)
 
 # We should be able to, when logged in and viewing a record for a movie, either add or update a personal rating for that movie
 #@app.route("/add_rating")
 
 if __name__ == "__main__":
 	# turn on Flask debug mode- browser does a traceback in browser
+	# never leave this on when on a production system because allows users to execute code on server
 	app.run(debug=True)
