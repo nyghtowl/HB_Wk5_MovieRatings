@@ -1,0 +1,16 @@
+<!--Creat user page for movie ratings -->
+{% extends "layout.html" %}
+{% block body %}
+	<h1> Hello New User. Please enter your email and password. </h1>
+	<form name="create_user" method="POST" action="{{ url_for('save_user') }}">
+		Email: <input type="text" name="email"><br>
+		Password: <input type="text" name="password"><br>
+		Age: <input type="text" name="age"><br>
+		Zipcode: <input type="text" name="zipcode"><br>
+	<input type="Submit" value="Submit">
+
+	</form>
+
+
+
+{% endblock %}

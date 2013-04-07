@@ -1,0 +1,13 @@
+<!--Index Page for Movie Ratings -->
+{% extends "layout.html" %}
+
+{% block body %}
+	<h1> Please login </h1>
+	<form name="login" method="POST" action="{{ url_for('authenticate') }}">
+		Email: <input type="text" name="email"><br>
+		Password: <input type="text" name="password"><br>
+	<input type="Submit" value="Submit">
+
+	</form>
+
+{% endblock %}

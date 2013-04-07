@@ -44,7 +44,7 @@ def load_movies(session):
             release_date = None
         decode_row = row[_NAME]
         decode_row = decode_row.decode("latin-1")
-        movie = model.Movies(id=row[_ID], name=decode_row, release_at=release_date, imdb=row[_IMDB])
+        movie = model.Movie(id=row[_ID], title=decode_row, release_at=release_date, imdb=row[_IMDB])
         session.add(movie)
     session.commit()
 
@@ -58,19 +58,20 @@ def load_ratings(session):
     parser = csv.reader(ratings_file, delimiter="" or "\t") #parses through each row, splitting along spaces or tabs
 
     for row in parser:
-        ratings = model.Ratings(user_id=row[_ID], movie_id=row[_MOVIE_ID], rating=row[_RATING]) #sets items in row lists equivalent to column values in Ratings table from model.py
+        ratings = model.Rating(user_id=row[_ID], movie_id=row[_MOVIE_ID], rating=row[_RATING]) #sets items in row lists equivalent to column values in Ratings table from model.py
         session.add(ratings) #adds to database
     session.commit() # commits to database
 
 
 def main(session):
     # You'll call each of the load_* functions with the session as an argument
-    #load_users(session)
-    #load_movies(session)
-    #load_ratings(session)
+    load_users(session)
+    load_movies(session)
+    load_ratings(session)
     pass
 
 if __name__ == "__main__":
+    # runs model connect function and stores in session
     session = model.connect()
     main(session)
 
