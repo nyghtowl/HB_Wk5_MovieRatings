@@ -1,0 +1,20 @@
+<!--View User's Ratings Page for Movie Ratings -->
+{% extends "layout.html" %}
+{% block body %}
+	<!-- for the rating object, pull out one item out with [0] and return user_id-->
+	<h1>{{ ratings[0].user_id }} Ratings </h1>
+	<table name="create_user">
+		<tr>
+			<td> Movie ID </td>
+			<td> Movie Name</td>
+			<td> Rating </td>
+
+		{% for rating in ratings %}
+		<tr>
+			<td>{{ rating.movie_id }}</td>
+			<td><a href = "{{ url_for('movie_rating_list', id = rating.movie.id) }}">{{ rating.movie.title }}</a></td>
+			<td>{{ rating.rating }}</td>
+		</tr>
+		{% endfor %}
+	</table>
+{% endblock %}

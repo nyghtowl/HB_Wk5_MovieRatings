@@ -20,7 +20,7 @@ def index():
 	# pull the user_id from the session
 	user_id = session.get("user_id", None)
 	# generate random list of users template
-	return redirect(url_for("list_users", id = user_id))
+	return redirect(url_for("list_users"))
 
 # generate the create_user page to capture user information (email, password, age, zipcode)
 @app.route("/create_user")
@@ -67,8 +67,10 @@ def authenticate():
 		session['email'] = user_info.email
 		#capture id out of the user_info object and assign to session
 		session['user_id'] = user_info.id
-		flash('Logged in as:' + session['email'])
-		return redirect(url_for('index'))
+		flash('Logged in as:' + user_email)
+		# ratings = user_info.ratings
+		# ratings = model.session.query(model.Rating).filter_by(user_id=user_info.id).all()
+		return redirect(url_for('user_ratings', id=user_info.id))
 	else:
 		#post message on screen if username or password are incorret
 		flash('Invalid username or password', 'error')
@@ -83,38 +85,71 @@ def logout():
 	#del session['user_id']
 	session.pop('email',None)
 	session.pop('user_id',None)
-	return redirect(url_for('login'))
+	return redirect(url_for('index'))
 
 # We should be able to view a list of all users
 # Note you can pass id through view and funciton or through calling the session
-@app.route("/list_users/<id>")
-def list_users(id=None):
-	user_email = session.get("email", None)
+@app.route("/list_users")
+def list_users():
+	#capture user email if it exists in a session
+	user_email = session.get('email', None)
+	#user_email = session.get("email", None)
 	user_list = model.session.query(model.User).limit(5).all()
+
 	#user_list = model.session.query(model.User).all()
-	return render_template("user_list.html", user_list = user_list, user_email = user_email)
+	return render_template("list_users.html", user_list = user_list, user_email = user_email)
+	
 
 # We should be able to click on a user and view the list of movies they've rated, as well as ratings
 # generate a ratings page based on users id
-@app.route("/view_ratings/<id>")
+@app.route("/user_ratings/<int:id>")
 # id = None in case there is no id
-def view_ratings(id=None):
+def user_ratings(id=None):
+	user_email = session.get('email', None)
+	if user_email:
+		flash('Click movie link to review ratings.', 'message')
+	else:
+		flash('Login to update ratings.', 'warning')
 	# sets sql query to pull ratings based on user id
-	user_ratings = model.session.query(model.Rating).filter_by(user_id=id).limit(5).all()
-	# return a page of the user ratings by passing the queried information in user_ratings object
-	return render_template("view_ratings.html", ratings = user_ratings)
+	user = model.session.query(model.User).get(id)
+	# ratings = model.session.query(model.Rating).filter_by(user_id=id).all()
+	# return a page of the user ratings by passing the queried information in user object
+	return render_template("user_ratings.html", user=user)
 
-# View all ratings for a specific movie
-@app.route("/movie_rating_list/<id>")
+# View all ratings for a specific movie & note the int:id confirms id is type int
+@app.route("/movie_ratings/<int:id>")
 # id = None in case there is no id
-def movie_rating_list(id=None):
-	# sets sql query to pull ratings based on user id
-	movie_ratings = model.session.query(model.Rating).filter_by(movie_id=id).all()
-	# return a page of the user ratings by passing the queried information in user_ratings object
-	return render_template("movie_rating_list.html", ratings = movie_ratings)
+def movie_ratings(id=None):
+	user_id = session.get('user_id', None)
+	# query for the object of whether the user rated this movie
+	user_rating_query = model.session.query(model.Rating).filter_by(user_id=user_id,movie_id=id).first()
+	# sets sql query to pull ratings based on movie id
+	movie = model.session.query(model.Movie).get(id)
+	
+	if user_rating_query:
+		flash('You\'ve rated this movie as follows:' + user_rating_query.rating)
+		# return a page of the user ratings by passing the queried information in movie object
+		return render_template("movie_ratings.html", movie = movie, rating = user_rating_query)
+	else:
+		flash('Do you want to rate this movie?', 'message')
+		# return a page of the user ratings by passing the queried information in movie object
+		return render_template("movie_ratings.html", movie = movie)
 
 # We should be able to, when logged in and viewing a record for a movie, either add or update a personal rating for that movie
 #@app.route("/add_rating")
+
+@app.route('/rate_movie/<int:id>', methods=['POST'])
+def rate_movie(id):
+	user_id = session['user_id']
+	rating_submitted = int(request.form['rating_select'])
+
+	log_rating = model.Rating(user_id = user_id, movie_id = id, rating = rating_submitted)
+	model.session.add(log_rating)
+	model.session.commit()
+
+
+	return redirect(url_for('user_ratings', id = user_id))
+
 
 if __name__ == "__main__":
 	# turn on Flask debug mode- browser does a traceback in browser

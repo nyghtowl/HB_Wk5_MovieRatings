@@ -1,0 +1,42 @@
+<!-- View Movie Page for Movie Ratings-->
+
+{% extends "layout.html" %}
+{% block body %}
+	{% if rating %}
+	<h3>Your rating: {{ rating.rating }}</h3>
+	{% else %}
+	<h2> Rate this movie </h2>
+	<form name='movie_ratings' action ="{{url_for('rate_movie', id=movie.id) }}" method='POST'>
+		<select name="rating_select">
+	        <option value="0">0</option>
+    	    <option value="1">1</option>
+    	   	<option value="2">2</option>
+    	    <option value="3">3</option>
+    	    <option value="4">4</option>
+    	    <option value="5">5</option>
+		</select>
+		<input type="submit">
+	</form>
+	{% endif %}	
+
+	<!-- for the rating object, pull out one item out with [0] and return user_id-->
+
+	<h1>{{ movie.title }} Ratings </h1>
+	<a href="{{ movie.imdb_url }}">IMDB Details</a>
+		{% for rate in movie.ratings %}
+		<table name="movie_rating list">
+		<tr>
+			<td> User ID </td>
+			<td> User Email</td>
+			<td> Rating </td>
+		</tr>
+		<tr>
+			<td><a href = "{{ url_for('user_ratings', id = rate.user_id) }}">{{ rate.user_id }}</a></td>
+			<td>{{ rate.user.email }}/td>
+			<td>{{ rate.rating }}</td>
+		</tr>
+	</table>
+	{% endfor %}
+
+
+{% endblock %}

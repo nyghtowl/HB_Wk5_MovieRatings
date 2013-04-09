@@ -1,0 +1,11 @@
+A
+	import model
+	model.session
+
+B
+	import model.session
+	model.session
+C
+	from model import session as db_session
+	db_session
+	

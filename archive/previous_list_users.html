@@ -1,0 +1,12 @@
+<!--List Users Page for Movie Ratings -->
+{% extends "layout.html" %}
+<h1>List Users</h1>
+
+{% block body %}
+
+{% for user in users %}
+<h2> user {{ user.id }}, age {{ user.age }} has {{ user.ratings|length }} ratings</h2>
+<h1></h1>
+{% endfor %}
+
+{% endblock %}

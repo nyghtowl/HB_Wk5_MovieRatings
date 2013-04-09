@@ -1,12 +1,20 @@
-<!--List Users Page for Movie Ratings -->
+<!--Index Page for Movie Ratings -->
 {% extends "layout.html" %}
-<h1>List Users</h1>
 
 {% block body %}
 
-{% for user in users %}
-<h2> user {{ user.id }}, age {{ user.age }} has {{ user.ratings|length }} ratings</h2>
-<h1></h1>
-{% endfor %}
+{% if user_email %}
+	<h1>Hello {{ user_email }}</h1>			
+	This is a list of users. Click on one to see their ratings.
+	{% for user in user_list %}
+		<h2><a href = "{{ url_for('user_ratings', id = user.id) }}"> {{ user.id }} </a>, age {{ user.age }} has {{ user.ratings|length }} ratings</h2>
+	{% endfor %}
+{% else %}
+	{% for user in user_list %}
+	<h1> Hello </h1>
+	<h2><a href = "{{ url_for('user_ratings', id = user.id) }}"> {{ user.id }} </a>, age {{ user.age }} has {{ user.ratings|length }} ratings</h2>
+	
+	{% endfor %}
+{% endif %}
 
 {% endblock %}

@@ -1,0 +1,26 @@
+<!--View Logged-in User's Ratings Page & Submit Ratings for Movie Ratings -->
+{% extends "layout.html" %}
+{% block body %}
+	<!-- for the rating object, pull out one item out with [0] and return user_id-->
+	<h1>User {{ user.id }} Ratings </h1>
+
+		{% for rating in user.ratings %}
+			<table name="create_user">
+			<tr>
+				<td> Movie ID </td>
+				<td> Movie Name</td>
+				<td> Rating </td>
+			</tr>
+			<tr>
+				<td>{{ rating.movie_id }}</td>
+				<td><a href = "{{ url_for('movie_ratings', id = rating.movie_id) }}">{{ rating.movie.title }}</a></td>
+				<td>{{ rating.rating }}</td>
+			</tr>
+		</table>
+		{% else %}
+		You haven't rated a movie yet.
+		{% endfor %}	
+
+	<ul>
+
+{% endblock %}
