@@ -1,6 +1,7 @@
 """
 judgement.py -- A flask-based ratings list
 """
+# Remaining to do: Update a rating, clean up the interface and only allow logged in users to submit a rating
 
 #Added session, url_for, escape for username login and g for global variables
 # adding request is accessing the request object and same for redirect
@@ -117,7 +118,7 @@ def user_ratings(id=None):
 	return render_template("user_ratings.html", user=user)
 
 # View all ratings for a specific movie & note the int:id confirms id is type int
-@app.route("/movie_ratings/<int:id>")
+@app.route("/movie_ratings/<int:id>", methods=["GET"])
 # id = None in case there is no id
 def movie_ratings(id=None):
 	user_id = session.get('user_id', None)
@@ -127,13 +128,15 @@ def movie_ratings(id=None):
 	movie = model.session.query(model.Movie).get(id)
 	
 	if user_rating_query:
-		flash('You\'ve rated this movie as follows:' + user_rating_query.rating)
+		flash('You\'ve rated this movie as follows:' + str(user_rating_query.rating))
 		# return a page of the user ratings by passing the queried information in movie object
 		return render_template("movie_ratings.html", movie = movie, rating = user_rating_query)
 	else:
 		flash('Do you want to rate this movie?', 'message')
+		user = model.session.query(model.User).get(user_id)
+		prediction = user.predict_rating(movie)
 		# return a page of the user ratings by passing the queried information in movie object
-		return render_template("movie_ratings.html", movie = movie)
+		return render_template("movie_ratings.html", movie = movie, prediction = prediction)
 
 # We should be able to, when logged in and viewing a record for a movie, either add or update a personal rating for that movie
 #@app.route("/add_rating")
@@ -147,9 +150,28 @@ def rate_movie(id):
 	model.session.add(log_rating)
 	model.session.commit()
 
+	flash("You've added a rating")
 
 	return redirect(url_for('user_ratings', id = user_id))
 
+# Display search
+@app.route("/search", methods=["GET"])
+def display_search():
+	return render_template("search.html")
+
+# Search for a movie
+@app.route("/search", methods=["POST"])
+def search():
+	query = request.form['query']
+	movies = model.session.query(model.Movie).filter(model.Movie.title.ilike("%" + query +"%")).limit(20).all()
+	return render_template('results.html', movies=movies)
+
+
+# Given a user U who has not rated movie X, find all other users who have rated that movie
+# For each other user O, find the movies they have rated in common with user U
+# Pair up the common movies, then feed each pair list into the pearson function to find similarity S
+# Rank the users by their similiarities and find the suer with the highest similarity, O
+# Multiply the similarity coefficient of user O with their rating for moie X - This is the prediction
 
 if __name__ == "__main__":
 	# turn on Flask debug mode- browser does a traceback in browser

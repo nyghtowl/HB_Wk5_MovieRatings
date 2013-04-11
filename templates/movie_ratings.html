@@ -3,9 +3,10 @@
 {% extends "layout.html" %}
 {% block body %}
 	{% if rating %}
-	<h3>Your rating: {{ rating.rating }}</h3>
+	<h3>User {{rating.user_id}} rating: {{ rating.rating }}</h3>
 	{% else %}
 	<h2> Rate this movie </h2>
+	<h3> We predict you will rate this movie {{prediction}}.</h3>
 	<form name='movie_ratings' action ="{{url_for('rate_movie', id=movie.id) }}" method='POST'>
 		<select name="rating_select">
 	        <option value="0">0</option>
@@ -22,7 +23,7 @@
 	<!-- for the rating object, pull out one item out with [0] and return user_id-->
 
 	<h1>{{ movie.title }} Ratings </h1>
-	<a href="{{ movie.imdb_url }}">IMDB Details</a>
+	<a href="{{ movie.imdb }}">IMDB</a> Details
 		{% for rate in movie.ratings %}
 		<table name="movie_rating list">
 		<tr>
